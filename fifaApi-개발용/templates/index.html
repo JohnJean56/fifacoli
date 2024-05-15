@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- https://ssl.nexon.com/s2/game/fo4/obt/rank/large/update_2009/ico_rank0.png 등급 이미지 링크-->
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+        integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery and Bootstrap Bundle (includes Popper) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+        crossorigin="anonymous"></script>
+    <!-- jQuery 를 포함합니다. -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- css -->
+    <link rel="stylesheet" type="text/css" href="..\static\style.css">
+    <!-- google font -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+
+    <title>찐막.com</title>
+
+    <script>
+        // 기본 정보 입력
+        let API_KEY = 'live_c006a02666edc9d92e3b993173d7ea8e4255c1910cdf30a15ddb6218a24d813c1ad6e5e4d378092b4213bbd0c356e251'
+        // 페이지 로딩 성공시 
+        $(document).ready(function () {
+            $('#search_result').empty()
+        });
+
+        function test() {
+            let character_name = $('#search_bar').val()
+            console.log(character_name)
+        }
+
+        function search() {
+            $('#search_result').empty()
+            $('#load').show();
+            let character_name = $('#search_bar').val()
+            let my_key = API_KEY
+            console.log(character_name, my_key)
+            $.ajax({
+                type: "POST",
+                url: "/list",
+                data: { give_key: my_key, give_name: character_name },
+                success: function (response) {
+                    let info_list = response['result'];
+                    let ouid = info_list['ouid'];
+                    let nickname = info_list['nickname'];
+                    let level = info_list['level'];
+                    let match_type = info_list['matchtype'];
+                    let division = info_list['division'];
+                    let date = info_list['achieve_date'];
+                    let div_img = info_list['div_img']
+                    result = `
+                    <ul class="list-group" id="search_result">
+                        <li class="list-group-item"><div><img src="${div_img}"></div> <div>${nickname}<br>lv.${level}</div></li>
+                        <li class="list-group-item">${nickname}의 최고등급: ${match_type} ${division}부<br>달성일자 :${date}</li>
+                    </ul>`
+                    $('#search_result').append(result)
+                }
+            }
+            )
+        }
+        // <div class="list-group-item list-group-item-success" style="height: 50px;"><div class="drop_1">날짜&nbsp;</div>
+        //                     <div class="drop_2">나&nbsp;</div><div class="drop_3">승&nbsp;</div><div class="drop_4">&nbsp;에너미</div></div>
+        //                     <div class="list-group-item list-group-item-danger" style="height: 50px;"><div class="drop_1">날짜&nbsp;</div>
+        //                     <div class="drop_2">나&nbsp;</div><div class="drop_3">승&nbsp;</div><div class="drop_4">&nbsp;에너미</div></div>
+
+        function match_result() {
+            let character_name = $('#search_bar').val()
+            let my_key = API_KEY
+            $.ajax({
+                type: "POST",
+                url: "/match",
+                data: { give_key: my_key, give_name: character_name },
+                success: function (response) {
+                    $('#match_result').empty()
+                    console.log(response['result']);
+                    let match = response['result'];
+                    result2 = `
+                    <button type="button" class="btn btn-secondary" onclick="show_hide()">공식경기 기록 보기</button>
+                    <div id="match_content">
+                    </div>`
+                    $('#match_result').append(result2)
+                    for (let i = 0; i < Object.keys(match).length; i++) {
+                        let result = match[i]['player_result'];
+                        let my_name = match[i]['player_nickname'];
+                        let my_score = match[i]['player_scored'];
+                        let his_name = match[i]['opponent_nickname'];
+                        let his_score = match[i]['opponent_scored'];
+                        if (match[i]['player_result'] == '승') {
+                            new_card = 
+                            `<div class="list-group-item list-group-item-success" style="height: 50px;">
+                                <div class="drop_1">;</div>
+                                <div class="drop_2">${my_name}&nbsp;:&nbsp;${my_score}&nbsp;</div>
+                                <div class="drop_3">승&nbsp;</div>
+                                <div class="drop_4">&nbsp;${his_score}&nbsp;:&nbsp;${his_name}</div>
+                            </div>`
+                            $('#match_content').append(new_card);
+                        }
+                        else  {
+                            new_card = 
+                            `<div class="list-group-item list-group-item-danger" style="height: 50px;">
+                                <div class="drop_1">;</div>
+                                <div class="drop_2">${my_name}&nbsp;:&nbsp;${my_score}&nbsp;</div>
+                                <div class="drop_3">패&nbsp;</div>
+                                <div class="drop_4">&nbsp;${his_score}&nbsp;:&nbsp;${his_name}</div>
+                            </div>`
+                            $('#match_content').append(new_card);
+                        }
+                        }
+                    }
+                }
+            
+            )
+        }
+        function run_search(e) {
+            if (e.keyCode == 13) {
+                search();
+                match_result();
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+        function show_hide() {
+            let status = $('#match_content').css('display')
+            if (status == 'none'){
+                $('#match_content').show();
+            }
+            else{
+                $('#match_content').hide();
+            }
+        }
+    </script>
+</head>
+
+<body>
+
+    <div id="top_nav">
+        <ul class="nav justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="article">게시판</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Link</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link disabled">Disabled</a>
+            </li>
+        </ul>
+    </div>
+    <div id="main_content">
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="닉네임을 입력하세요" aria-label="Recipient's username"
+                aria-describedby="button-addon2" id="search_bar" onkeypress="run_search(event)">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" id="button-addon2"
+                    onclick="search(); match_result();">검색</button>
+            </div>
+        </div>
+        <ul class="list-group" id="search_result">
+        </ul>
+        <div class="list-group" id="match_result">
+            
+        </div>
+    </div>
+</body>
+
+</html>
